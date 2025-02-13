@@ -1,30 +1,31 @@
 const express = require("express");
 const http = require("http");
-const socketIo = require("socket.io");
-const cors = require("cors");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
+const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
   },
 });
 
-app.use(cors());
-
 io.on("connection", (socket) => {
-  console.log("New client connected:", socket.id);
-
-  socket.on("join-room", (roomId, userId) => {
+  socket.on("join-room", (roomId) => {
     socket.join(roomId);
-    socket.to(roomId).emit("user-connected", userId);
+    socket.to(roomId).emit("user-connected", socket.id);
+
+    socket.on("signal", (userId, signal) => {
+      socket.to(userId).emit("signal", signal);
+    });
 
     socket.on("disconnect", () => {
-      socket.to(roomId).emit("user-disconnected", userId);
+      socket.to(roomId).emit("user-disconnected", socket.id);
     });
   });
 });
 
-const PORT = 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(5000, () => {
+  console.log("Server is running on http://localhost:5000");
+});
