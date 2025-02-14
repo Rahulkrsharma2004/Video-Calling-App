@@ -1,31 +1,41 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
+const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://video-calling-app-rk.vercel.app",
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
 
-io.on("connection", (socket) => {
-  socket.on("join-room", (roomId) => {
-    socket.join(roomId);
-    socket.to(roomId).emit("user-connected", socket.id);
+app.use(cors());
 
-    socket.on("signal", (userId, signal) => {
-      socket.to(userId).emit("signal", signal);
+io.on("connection", (socket) => {
+  console.log("New user connected:", socket.id);
+
+  // Listen for a user joining a room
+  socket.on("join-room", ({ roomId, name }) => {
+    socket.join(roomId);
+    console.log(`${name} (${socket.id}) joined room: ${roomId}`);
+    // Broadcast to other users in the room
+    socket.broadcast.to(roomId).emit("user-connected", { userId: socket.id, name });
+
+    // Handle signaling between peers
+    socket.on("signal", (data) => {
+      io.to(data.userId).emit("signal", { signal: data.signal, userId: socket.id });
     });
 
+    // Listen for user disconnections
     socket.on("disconnect", () => {
-      socket.to(roomId).emit("user-disconnected", socket.id);
+      console.log("User disconnected:", socket.id);
+      socket.broadcast.to(roomId).emit("user-disconnected", socket.id);
     });
   });
 });
 
-server.listen(5000, () => {
-  console.log("Server is running on http://localhost:5000");
-});
+// Start the server
+server.listen(5000, () => console.log("Server running on port 5000"));
