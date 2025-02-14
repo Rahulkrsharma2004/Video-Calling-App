@@ -1,25 +1,33 @@
 import React from "react";
+import { FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaPhoneSlash, FaPhone } from "react-icons/fa";
 
 const Controls = ({ muted, videoOn, toggleMute, toggleVideo, leaveCall }) => {
   return (
-    <div className="flex justify-center space-x-4 p-4 bg-[#2A2F42] shadow-lg">
-      <button
-        onClick={toggleMute}
-        className="p-3 bg-[#3A3F52] rounded-full hover:bg-[#4A4F62] focus:outline-none transition duration-300"
+    <div className="flex justify-center space-x-6 p-4 bg-gray-900 shadow-lg">
+      {/* Mute/Unmute Button */}
+      <button 
+        onClick={toggleMute} 
+        className={`p-4 rounded-full transition ${
+          muted ? "bg-red-600 hover:bg-red-500" : "bg-gray-700 hover:bg-gray-600"
+        }`}
       >
-        {muted ? "🔇" : "🎤"}
+        {muted ? <FaMicrophoneSlash className="text-white text-2xl" /> : <FaMicrophone className="text-white text-2xl" />}
       </button>
-      <button
-        onClick={toggleVideo}
-        className="p-3 bg-[#3A3F52] rounded-full hover:bg-[#4A4F62] focus:outline-none transition duration-300"
+
+      {/* Video On/Off Button */}
+      <button 
+        onClick={toggleVideo} 
+        className={`p-4 rounded-full transition ${
+          videoOn ? "bg-gray-700 hover:bg-gray-600" : "bg-red-600 hover:bg-red-500"
+        }`}
       >
-        {videoOn ? "📹" : "📴"}
+        {videoOn ? <FaVideo className="text-white text-2xl" /> : <FaVideoSlash className="text-white text-2xl" />}
       </button>
-      <button
-        onClick={leaveCall}
-        className="p-3 bg-red-600 rounded-full hover:bg-red-700 focus:outline-none transition duration-300"
+      <button 
+        onClick={leaveCall} 
+        className="p-4 bg-red-600 rounded-full hover:bg-red-500 transition"
       >
-        🚪 Leave
+        <FaPhone className="text-white text-2xl" />
       </button>
     </div>
   );
