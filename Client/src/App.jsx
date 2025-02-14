@@ -4,7 +4,7 @@ import Peer from "simple-peer";
 import VideoTile from "./components/VideoTile";
 import Controls from "./components/Controls";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://video-calling-app-brown.vercel.app");
 
 const App = () => {
   const [stream, setStream] = useState(null);
