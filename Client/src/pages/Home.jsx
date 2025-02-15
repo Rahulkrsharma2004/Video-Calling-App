@@ -13,7 +13,7 @@ const Home = () => {
       return;
     }
     const newRoomId = uuidV4();
-    navigate(`/room/${newRoomId}?name=${encodeURIComponent(userName)}`);
+    navigate(`/room/${newRoomId}`);
   };
 
   const joinExistingRoom = () => {
@@ -25,7 +25,7 @@ const Home = () => {
       alert("Please enter a valid Room ID!");
       return;
     }
-    navigate(`/room/${roomId}?name=${encodeURIComponent(userName)}`);
+    navigate(`/room/${roomId}`);
   };
 
   return (
