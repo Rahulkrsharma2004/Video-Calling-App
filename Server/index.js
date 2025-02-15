@@ -14,35 +14,50 @@ const io = new Server(server, {
 
 app.use(cors());
 
+const rooms = {};
+
 io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
 
-  // Store user-room mapping
   let userRoom = null;
 
-  // Listen for a user joining a room
   socket.on("join-room", ({ roomId, name }) => {
-    userRoom = roomId; // Store room ID for disconnect handling
+    userRoom = roomId;
     socket.join(roomId);
+
+    if (!rooms[roomId]) {
+      rooms[roomId] = [];
+    }
+    
+    rooms[roomId].push({ socketId: socket.id, name });
+
     console.log(`${name} (${socket.id}) joined room: ${roomId}`);
 
-    // Notify other users in the room
-    socket.broadcast.to(roomId).emit("user-connected", { userId: socket.id, name });
+    io.to(roomId).emit("user-list", rooms[roomId]);
 
-    // Handle WebRTC signaling between peers
-    socket.on("signal", (data) => {
-      io.to(data.userId).emit("signal", { signal: data.signal, userId: socket.id });
-    });
+    socket.broadcast.to(roomId).emit("user-connected", { userId: socket.id, name });
   });
 
-  // Listen for user disconnections (should be outside `join-room`)
+  socket.on("offer", (data) => {
+    socket.to(data.userId).emit("offer", { signal: data.signal, userId: socket.id });
+  });
+
+  socket.on("answer", (data) => {
+    socket.to(data.userId).emit("answer", { signal: data.signal, userId: socket.id });
+  });
+
+  socket.on("candidate", (data) => {
+    socket.to(data.userId).emit("candidate", data);
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
-    if (userRoom) {
+    if (userRoom && rooms[userRoom]) {
+      rooms[userRoom] = rooms[userRoom].filter((user) => user.socketId !== socket.id);
       socket.broadcast.to(userRoom).emit("user-disconnected", socket.id);
+      io.to(userRoom).emit("user-list", rooms[userRoom]);
     }
   });
 });
 
-// Start the server
 server.listen(5000, () => console.log("Server running on port 5000"));
